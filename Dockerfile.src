@@ -1,0 +1,36 @@
+# 从源码构建版（NAS 上没有预编译二进制、或想自己编译时用这个）
+# 用法：docker build -f Dockerfile.src -t shiyin-nd:0.1.0 .
+#
+# 说明：这里在容器内交叉编译 x86_64-unknown-linux-musl 静态二进制。
+# 关键点：设置 CC 为 musl-gcc，但【不要】覆盖 linker（交给 Rust 自带的 rust-lld），
+# 否则 Ubuntu 的 musl-gcc 与 Rust 内置 musl std 不匹配，产物运行即段错误。
+
+FROM rust:1-bookworm AS builder
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends musl-tools \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN rustup target add x86_64-unknown-linux-musl
+
+WORKDIR /src
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+
+ENV CC_x86_64_unknown_linux_musl=musl-gcc
+RUN cargo build --release --target x86_64-unknown-linux-musl --bin shiyin-nd
+
+FROM alpine:3.20
+
+RUN apk add --no-cache ca-certificates tzdata
+
+COPY --from=builder /src/target/x86_64-unknown-linux-musl/release/shiyin-nd /usr/local/bin/shiyin-nd
+RUN chmod +x /usr/local/bin/shiyin-nd \
+ && mkdir -p /music /config
+
+ENV SHIYIN_CONFIG_DIR=/config \
+    SHIYIN_MUSIC_DIR=/music
+
+WORKDIR /music
+ENTRYPOINT ["shiyin-nd"]
+CMD ["--help"]

@@ -1,0 +1,39 @@
+services:
+  shiyin-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: shiyin-nd:0.3.0
+    container_name: shiyin-web
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    environment:
+      - TZ=UTC
+      - WEB_PORT=8090
+      - SHIYIN_CONFIG_DIR=/config
+      - SHIYIN_MUSIC_DIR=/music
+    volumes:
+      # 左边换成你自己的音乐目录；容器内固定 /music
+      - /path/to/your/music:/music
+      # 登录态与网页账号存在这里，容器重建不会丢
+      - ./config:/config
+
+  # 只用命令行时（不进网页），用下面这个服务：
+  # docker compose run --rm cli search "晴天" -n 10
+  cli:
+    profiles: ["cli"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: shiyin-nd:0.3.0
+    container_name: shiyin-cli
+    environment:
+      - TZ=UTC
+      - SHIYIN_CONFIG_DIR=/config
+      - SHIYIN_MUSIC_DIR=/music
+    volumes:
+      - /path/to/your/music:/music
+      - ./config:/config
+    entrypoint: ["shiyin-nd"]
+    command: ["--help"]

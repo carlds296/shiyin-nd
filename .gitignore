@@ -1,0 +1,30 @@
+# Rust
+/target
+**/*.rs.bk
+
+# 预编译产物（仓库只放源码，二进制请自行构建）
+/bin
+*.tar.gz
+*.zip
+
+# 运行时配置：登录态、网页账号、二维码都不要进仓库
+/config/*
+!/config/.gitkeep
+
+# 音乐文件
+/music
+*.flac
+*.mp3
+*.m4a
+*.ape
+*.wav
+
+# 日志与临时文件
+*.log
+*.part
+*.tmp
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store

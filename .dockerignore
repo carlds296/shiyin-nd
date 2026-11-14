@@ -1,0 +1,8 @@
+target/
+config/
+music/
+*.tar.gz
+*.zip
+.git/
+.cargo/
+Dockerfile.src
